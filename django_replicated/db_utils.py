@@ -5,13 +5,13 @@ from datetime import datetime, timedelta
 from functools import partial
 
 from django.conf import settings
-from django.core.cache import get_cache, DEFAULT_CACHE_ALIAS
+from django.core.cache import get_cache
 
 
 logger = logging.getLogger('replicated.db_checker')
 
 cache = get_cache(
-    getattr(settings, 'REPLICATED_CACHE_BACKEND', DEFAULT_CACHE_ALIAS)
+    getattr(settings, 'REPLICATED_CACHE_BACKEND', settings.CACHE_BACKEND)
 )
 host_name = socket.gethostname()
 
