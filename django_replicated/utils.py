@@ -14,9 +14,13 @@ logger = logging.getLogger('replicated.db_checker')
 
 def _get_func_import_path(func):
     '''
-    Returns import path of a module-level funtion.
+    Returns import path of a class method or a module-level funtion.
     '''
-    return '%s.%s' % (func.__module__, func.__name__)
+    if type(func) == types.FunctionType:
+        base = func
+    else:
+        base = func.__class__
+    return '%s.%s' % (base.__module__, base.__name__)
 
 
 def check_state_override(request, state):
