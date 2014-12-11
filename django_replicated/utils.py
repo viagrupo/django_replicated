@@ -2,20 +2,21 @@
 
 import warnings
 from functools import partial
+import logging
 
 from django import db
 from django.conf import settings
 from django.core import urlresolvers
 
 from .db_utils import db_is_alive, db_is_not_read_only
+logger = logging.getLogger('replicated.db_checker')
 
 
 def _get_func_import_path(func):
     '''
-    Returns import path of a class method or a module-level funtion.
+    Returns import path of a module-level funtion.
     '''
-    base = func.__class__ if hasattr(func, '__class__') else func
-    return '%s.%s' % (base.__module__, base.__name__)
+    return '%s.%s' % (func.__module__, func.__name__)
 
 
 def check_state_override(request, state):
@@ -26,15 +27,15 @@ def check_state_override(request, state):
     if request.COOKIES.get('just_updated') == 'true':
         return 'master'
 
-    overrides = getattr(settings, 'REPLICATED_VIEWS_OVERRIDES', {})
+    overrides = getattr(settings, 'REPLICATED_VIEWS_OVERRIDES', [])
 
     if overrides:
         match = urlresolvers.resolve(request.path_info)
-        import_path = _get_func_import_path(match.func)
-
+        import_path = _get_func_import_path(match[0])
         for lookup_view, forced_state in overrides.iteritems():
-            if match.url_name == lookup_view or import_path == lookup_view:
+            if import_path == lookup_view:
                 state = forced_state
+                logger.debug('Overrided "%s" db for view "%s"' % (state, lookup_view))
                 break
 
     return state
