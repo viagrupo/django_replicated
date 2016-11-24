@@ -89,3 +89,6 @@ class ReplicationRouter(object):
         self.context.chosen[self.state()] = chosen
 
         return chosen
+
+    def allow_relation(self, obj1, obj2, **hints):
+        return True
